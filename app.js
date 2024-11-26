@@ -5,6 +5,11 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 var cors = require('cors');
 
+const Event = require('./models/eventModel');
+const Ticket = require('./models/ticketModel');
+
+var cron = require('node-cron');
+
 dotenv.config({ path: './config/config.env' });
 
 connectDB();
@@ -42,6 +47,32 @@ app.use('/api/v1/notifications', notifications);
 app.use('/api/v1/stats', stats);
 app.use('/api/v1/users', users);
 app.use('/api/v1/auth', auth);
+
+cron.schedule('0 0 * * *', async () => {
+    try {
+        console.log("Running cron job to check for completed events...");
+
+        // Get the current date
+        const currentDate = new Date();
+
+        // Find all events that have ended (eventDate is in the past)
+        const pastEvents = await Event.find({ eventDate: { $lt: currentDate } });
+
+        // Loop through all past events and update associated tickets
+        for (const event of pastEvents) {
+            // Update tickets for the given eventId, set status to 'completed'
+        await Ticket.updateMany(
+            { eventId: event._id, status: { $ne: 'completed' } }, // Only update tickets that are not already 'completed'
+            { $set: { status: 'completed' } }
+        );
+            console.log(`Updated tickets for event: ${event.eventName}`);
+        }
+
+        console.log("Ticket statuses updated for past events.");
+    } catch (error) {
+        console.error("Error running cron job:", error);
+    }
+});
 
 const PORT = process.env.PORT || 5000;
 
