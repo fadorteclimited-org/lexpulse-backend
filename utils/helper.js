@@ -113,7 +113,8 @@ exports.updateBalance = async (userId) => {
             endDate = new Date(event.eventEnd);
         } catch (e) {
 
-            const eventDate = new Date(event.eventDate);
+            if (event.eventEnd){
+                         const eventDate = new Date(event.eventDate);
             const [hours, minutes] = event.eventEnd.split(':');
             eventDate.setUTCHours(hours, minutes, 0, 0); // Set the time part
             endDate = eventDate;
@@ -129,6 +130,9 @@ exports.updateBalance = async (userId) => {
         if (today > endDate) {
             user.availableBalance += user.pendingBalance;
             user.pendingBalance = 0;
+        }
+            } else {
+           
         }
         await user.save()
     }
