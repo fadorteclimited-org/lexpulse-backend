@@ -102,40 +102,37 @@ exports.initiatePowerPayment = async (email, amount,event,callback_url,reference
 
 
 exports.updateBalance = async (userId) => {
-    const events = await Event.find({eventHostId: userId}).exec();
+    const events = await Event.find({ eventHostId: userId }).exec();
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset today's time to 00:00:00
+    today.setHours(0, 0, 0, 0);
     const user = await User.findById(userId).exec();
+
     for (const event of events) {
         let endDate;
         try {
-
             endDate = new Date(event.eventEnd);
         } catch (e) {
+            if (event.eventEnd) {
+                const eventDate = new Date(event.eventDate);
+                const [hours, minutes] = event.eventEnd.split(':');
+                eventDate.setUTCHours(hours, minutes, 0, 0);
+                endDate = eventDate;
 
-            if (event.eventEnd){
-                         const eventDate = new Date(event.eventDate);
-            const [hours, minutes] = event.eventEnd.split(':');
-            eventDate.setUTCHours(hours, minutes, 0, 0); // Set the time part
-            endDate = eventDate;
+                if (isNaN(endDate)) {
+                    const [hours, minutes] = event.eventEnd.split(':');
+                    eventDate.setUTCHours(hours, minutes, 0, 0);
+                    endDate = eventDate;
+                }
 
-        if (isNaN(endDate)) {
-            const eventDate = new Date(event.eventDate); // Event's date part
-            const [hours, minutes] = event.eventEnd.split(':');
-            eventDate.setUTCHours(hours, minutes, 0, 0); // Set the time part again
-            endDate = eventDate; // Assign the complete date-time to endDate
+                if (today > endDate) {
+                    user.availableBalance += user.pendingBalance;
+                    user.pendingBalance = 0;
+                }
+            }
         }
-
-        if (today > endDate) {
-            user.availableBalance += user.pendingBalance;
-            user.pendingBalance = 0;
-        }
-            
-            } else {
-           
-        }
-        await user.save()
     }
+    
+    await user.save();
 }
 
 exports.createPaystackRecipient = async (userId,type, name,account_number,bank_code,currency) => {

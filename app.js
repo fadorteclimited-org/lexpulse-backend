@@ -11,8 +11,8 @@ const Event = require('./models/eventModel');
 const Ticket = require('./models/ticketModel');
 
 var cron = require('node-cron');
-
 const bodyParser = require('body-parser');
+
 dotenv.config({ path: './config/config.env' });
 connectDB();
 
