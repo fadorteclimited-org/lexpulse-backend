@@ -1,0 +1,53 @@
+#file:venueModel.graphql
+
+type Link {
+    name: String
+    url: String
+}
+
+type Venue {
+    id: ID!
+    name: String!
+    street: String!
+    city: String!
+    district: String
+    country: String!
+    links: [Link]
+    followers: Int
+    images: [String]
+    poster: String
+    capacity: Int!
+    type: String!
+    yearEvents: Int
+    description: String
+    phone: String!
+    email: String!
+    createdAt: String!
+    userId: ID!
+}
+
+input LinkInput {
+    name: String
+    url: String
+}
+
+input VenueInput {
+    name: String!
+    street: String!
+    city: String!
+    district: String
+    country: String!
+    links: [LinkInput]
+    followers: Int
+    images: [String]
+    poster: String
+    capacity: Int!
+    type: String!
+    yearEvents: Int
+    description: String
+    phone: String!
+    email: String!
+    userId: ID!
+}
+
+

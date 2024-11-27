@@ -1,0 +1,14 @@
+
+type Points {
+    id: ID!
+    userId: ID!
+    newBalance: Int!
+    previousBalance: Int!
+    createdAt: String!
+}
+
+input PointsInput {
+    userId: ID!
+    newBalance: Int!
+    previousBalance: Int!
+}

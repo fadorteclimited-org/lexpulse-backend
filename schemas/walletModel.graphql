@@ -1,0 +1,75 @@
+type Wallet {
+    id: ID!
+    userId: ID!
+    balance: Float!
+    prevBalance: Float!
+    pendingBalance: Float!
+    pendingPrevBalance: Float!
+    currency: String!
+}
+
+input WalletInput {
+    userId: ID!
+    balance: Float!
+    prevBalance: Float!
+    pendingBalance: Float!
+    pendingPrevBalance: Float!
+    currency: String
+}
+
+enum PaymentServices {
+    Pawapay, Paystack
+}
+
+
+type WithdrawalAccount {
+    id: ID!
+    userId: ID!
+    type: String!
+    name: String!
+    accountNumber: String!
+    bank_code: String
+    currency: String
+    bank_name: String
+    recipient_code: String
+    service: PaymentServices
+    createdAt: String
+    active: Boolean
+    flagged: Boolean
+    reason: String
+}
+
+input WithdrawalAccountInput {
+    userId:String,
+    type:String,
+    name:String,
+    accountNumber:String,
+    bankCode:String,
+    currency: String,
+    bankName:String
+}
+
+enum PayoutStatus {
+pending, approved, rejected,completed
+}
+
+type Payout {
+    id: ID!
+    amount: Int
+    currency: String
+    status: PayoutStatus
+    reason: String
+    walletId: String
+    wallet: Wallet
+    withdrawalAccountId: String
+    withdrawalAccount: WithdrawalAccount
+    userId: String
+    createdAt: String
+}
+input PayoutInput{
+    amount: String
+    currency: String
+    walletId: String
+    withdrawalAccountId: String
+    userId: String
+}

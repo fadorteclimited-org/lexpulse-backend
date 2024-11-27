@@ -117,14 +117,44 @@ const EventSchema = new mongoose.Schema({
       type: String,
     },
   },
+  lastEntry: {
+    type: String,
+    default: 'Anytime',
+  },
   approved: {
     type: Boolean,
     required: true,
+    default: false,
   },
   createdAt: {
     type: Date,
     default: Date.now,
   },
+  viewCount: {
+    type: Number,
+    default: 0,
+  },
+  weightedRating: {
+    type: Number,
+    default: 0,
+  },
+  ticketSales: {
+    type: Number,
+    default: 0,
+  },
+  scanners: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'Scanner',
+    default: []
+  },
+  flagged: {
+    type: Boolean,
+    default: false,
+  },
+  reason: {
+    type: String,
+    default: '',
+  }
 });
 
 module.exports = mongoose.model('Event', EventSchema);

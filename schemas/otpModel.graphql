@@ -1,0 +1,19 @@
+
+type Otp {
+    id: ID!
+    userId: ID!
+    activateCode: Int!
+    numberOfTries: Int!
+    expiredAt: String!
+    updatedAt: String!
+    createdAt: String!
+}
+
+input OtpInput {
+    userId: ID!
+    activateCode: Int!
+    numberOfTries: Int!
+    expiredAt: String!
+    updatedAt: String!
+}
+

@@ -1,0 +1,12 @@
+
+type ReferralCode {
+    id: ID!
+    userId: ID!
+    code: String!
+    createdAt: String!
+}
+
+input ReferralCodeInput {
+    userId: ID!
+    code: String!
+}

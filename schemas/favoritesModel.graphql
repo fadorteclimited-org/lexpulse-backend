@@ -1,0 +1,13 @@
+
+type Favorite {
+    id: ID!
+    userId: ID!
+    eventId: ID!
+    createdAt: String!
+}
+
+input FavoriteInput {
+    userId: ID!
+    eventId: ID!
+}
+

@@ -1,0 +1,18 @@
+
+type Scanner {
+    id: ID!
+    eventId: ID!
+    email: String!
+    activated: Boolean!
+    name: String!
+    scannedTickets: Int!
+}
+
+input ScannerInput {
+    eventId: ID!
+    email: String!
+    activated: Boolean
+    name: String!
+    scannedTickets: Int
+}
+

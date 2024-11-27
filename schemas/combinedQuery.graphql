@@ -1,0 +1,42 @@
+type Query {
+    user(id: ID!): User
+    users: [User]
+    venue(id: ID!): Venue
+    venues: [Venue]
+    wallet(id: ID!): Wallet
+    wallets: [Wallet]
+    ticket(id: ID!): Ticket
+    tickets: [Ticket]
+    transaction(id: ID!): Transaction
+    transactions: [Transaction]
+    scanner(id: ID!): Scanner
+    scanners: [Scanner]
+    payout(id:ID!): Payout
+    payouts:[Payout]
+    withdrawalAccount(id:ID!):WithdrawalAccount
+
+    #user
+    getHosts:[User]
+    getUserTickets(id: ID!): [Ticket]
+    getHostEvents(id: ID!): [Event]
+    getUserWallets(id: ID!): [Wallet]
+
+    #events
+    getEvent(id: ID!): Event
+    getEvents: [Event]
+    getUnapprovedEvents:[Event]
+    getTodayEvents:[Event]
+    upcomingEvents:[Event]
+    recentEvents:[Event]
+    getEventTransactions(id: ID!): [UserIncludedTransaction]
+    getEventReservations(id: ID!): [UserIncludedTicket]
+
+    #payouts
+    getUserPayouts(userId: ID): [Payout]
+
+}
+
+schema {
+    query: Query
+    mutation: Mutation
+}

@@ -1,0 +1,19 @@
+
+type Notification {
+    id: ID!
+    userId: ID
+    title: String!
+    message: String!
+    notificationType: String!
+    read: Boolean!
+    createdAt: String!
+}
+
+input NotificationInput {
+    userId: ID
+    title: String!
+    message: String!
+    notificationType: String!
+    read: Boolean
+}
+

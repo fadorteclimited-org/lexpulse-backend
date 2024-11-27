@@ -1,0 +1,10 @@
+
+type Country {
+    id: ID!
+    country: String!
+    createdAt: String!
+}
+
+input CountryInput {
+    country: String!
+}

@@ -1,0 +1,65 @@
+#file:ticketModel.graphql
+
+type PurchasedTicketInfo {
+    ticketType: String
+    numberOfTickets: Int
+}
+input PurchasedTicketInfoInput {
+    ticketType: String!
+    numberOfTickets: Int!
+}
+
+type Ticket {
+    id: ID
+    eventId: ID
+    attendeeId: ID
+    paymentMethod: String
+    ticketInfo: [PurchasedTicketInfo]
+    totalPrice: Float
+    amountPaid: Float
+    status: String
+    paymentId: String
+    createdAt: String
+    scanned: Boolean
+}
+
+type CombinedTicket {
+    id: ID
+    eventId: ID
+    attendeeId: ID
+    paymentMethod: String
+    ticketInfo: [PurchasedTicketInfo]
+    totalPrice: Float
+    amountPaid: Float
+    status: String
+    paymentId: String
+    createdAt: String
+    scanned: Boolean
+}
+
+type UserIncludedTicket {
+    id: ID
+    eventId: ID
+    attendeeId: ID
+    paymentMethod: String
+    ticketInfo: [PurchasedTicketInfo]
+    user: User
+    totalPrice: Float
+    amountPaid: Float
+    status: String
+    paymentId: String
+    createdAt: String
+    scanned: Boolean
+}
+input TicketInput {
+    eventId: ID!
+    attendeeId: ID!
+    paymentMethod: String
+    ticketInfo: [PurchasedTicketInfoInput!]!
+    totalPrice: Float
+    amountPaid: Float
+    status: String
+    paymentId: String
+    scanned: Boolean
+}
+

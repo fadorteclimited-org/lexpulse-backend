@@ -41,6 +41,10 @@ const TicketSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  scanned: {
+    type: Boolean,
+    default: false
   }
 });
 

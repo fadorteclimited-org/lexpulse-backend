@@ -121,7 +121,8 @@ exports.addUser = async(req, res, next) => {
           password: hash,
           // gender,
           phone: Number(activateCode),
-          activatedEmail: false,
+          //TODO: Change for production
+          activatedEmail: true,
           activatedPhone: false,
           userType,
           accountActive: true,

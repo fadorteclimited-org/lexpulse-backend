@@ -4,177 +4,187 @@ const moment = require('moment');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 var postmark = require("postmark");
+const {updateBalance} = require("../utils/helper");
 var client = new postmark.ServerClient(process.env.POSTMARK_EMAIL_KEY);
 
 // @desc Auth user
 // @route POST /api/v1/auth
-exports.checkUser = async(req, res, next) => {
-  try {
-    const { email, password } = req.body;
+exports.checkUser = async (req, res, next) => {
+    try {
+        const {email, password} = req.body;
 
-    if(!email || !password) {
-      return res.status(400).json({ msg: 'Please enter all fields' });
-    }
+        if (!email || !password) {
+            return res.status(400).json({msg: 'Please enter all fields'});
+        }
+        const user = await User.findOne({email}).exec()
 
-    User.findOne({ email })
-      .then(user => {
-        if(!user) return res.status(400).json({ msg: 'User does not exist' });
+        if (!user) return res.status(400).json({msg: 'User does not exist'});
 
-        if(user.activatedEmail === false) return res.status(400).json({ msg: 'Email not verified' });
+        if (user.activatedEmail === false) return res.status(400).json({msg: 'Email not verified'});
 
-        bcrypt.compare(password, user.password)
-          .then(isMatch => {
-            if(!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
+        const isMatch = await bcrypt.compare(password, user.password);
 
-            jwt.sign(
-              { id: user.id },
-              process.env.JWT_SECRET,
-              { expiresIn: '365d' },
-              (err, token) => {
-                if(err) throw err;
-
+        if (!isMatch) return res.status(400).json({msg: 'Invalid credentials'});
+        await updateBalance(user.id)
+        jwt.sign(
+            {...user,id: user.id},
+            process.env.JWT_SECRET,
+            {expiresIn: '365d'},
+            (err, token) => {
+                if (err) throw err;
+                const extra = (user.userType === 'host') ? {
+                    pendingBalance: user.pendingBalance || 0,
+                    availableBalance: user.availableBalance || 0,
+                    withdrawalAccounts: user.withdrawalAccounts || []
+                } : {}
                 res.json({
-                  token,
-                  user: {
-                    id: user.id,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    email: user.email,
-                    country: user.country,
-                    gender: user.gender,
-                    userType: user.userType,
-                    image: user.image
-                  }
+                    token,
+                    user: {
+                        id: user.id,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        email: user.email,
+                        country: user.country,
+                        gender: user.gender,
+                        userType: user.userType,
+                        image: user.image,
+                        username: user.username,
+                        organization: user.organization,
+                        phone: user.phone,
+                        activatedEmail: user.activatedEmail,
+                        activatedPhone: user.activatedPhone,
+                        accountActive: user.accountActive,
+                        createdAt: user.createdAt,
+                        ...extra
+                    }
                 });
-              }
-            );
-          });
-      });
+            }
+        );
 
-  } catch (error) {
-    if(error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(val => val.message);
 
-      return res.status(400).json({
-        success: false,
-        error: messages
-      });
+    } catch (error) {
+        console.log(error);
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
+
+            return res.status(400).json({
+                success: false,
+                error: messages
+            });
+        } else {
+            return res.status(500).json({
+                success: false,
+                error: 'Internal Server Error'
+            });
+        }
     }
-    else {
-      return res.status(500).json({
-        success: false,
-        error: 'Internal Server Error'
-      });
-    }
-  }
 }
 
 // @desc Auth user confirm code
 // @route POST /api/v1/auth/confirm-code
-exports.checkUserVerification = async(req, res, next) => {
-  try {
-    const { email, code } = req.body;
+exports.checkUserVerification = async (req, res, next) => {
+    try {
+        const {email, code} = req.body;
 
-    if(!email || !code) {
-      return res.status(400).json({ msg: 'Please enter all fields' });
-    }
+        if (!email || !code) {
+            return res.status(400).json({msg: 'Please enter all fields'});
+        }
 
-    User.findOne({ email })
-      .then(async (user) => {
-        if(!user) return res.status(400).json({ msg: 'User does not exist' });
+        User.findOne({email})
+            .then(async (user) => {
+                if (!user) return res.status(400).json({msg: 'User does not exist'});
 
-        const otpCode = await Otp.findOne({ userId: user.id });
+                const otpCode = await Otp.findOne({userId: user.id});
 
-        if(moment() > moment(otpCode.expiredAt)) return res.status(400).json({ msg: 'Code expired' });
+                if (moment() > moment(otpCode.expiredAt)) return res.status(400).json({msg: 'Code expired'});
 
-        if(otpCode.activateCode !== Number(code)) return res.status(400).json({ msg: 'Invalid code' });
+                if (otpCode.activateCode !== Number(code)) return res.status(400).json({msg: 'Invalid code'});
 
-        const userNew = await User.findByIdAndUpdate(user._id, {
-          activatedEmail: true
-        }, { new: true });
+                const userNew = await User.findByIdAndUpdate(user._id, {
+                    activatedEmail: true
+                }, {new: true});
 
-        jwt.sign(
-          { id: user.id },
-          process.env.JWT_SECRET,
-          { expiresIn: '7d' },
-          (err, token) => {
-            if(err) throw err;
+                jwt.sign(
+                    {id: user.id},
+                    process.env.JWT_SECRET,
+                    {expiresIn: '7d'},
+                    (err, token) => {
+                        if (err) throw err;
 
-            res.json({
-              token,
-              user: {
-                id: userNew.id,
-                firstName: userNew.firstName,
-                lastName: userNew.lastName,
-                email: userNew.email,
-                country: userNew.country,
-                gender: userNew.gender,
-                userType: userNew.userType,
-                image: userNew.image
-              }
+                        res.json({
+                            token,
+                            user: {
+                                id: userNew.id,
+                                firstName: userNew.firstName,
+                                lastName: userNew.lastName,
+                                email: userNew.email,
+                                country: userNew.country,
+                                gender: userNew.gender,
+                                userType: userNew.userType,
+                                image: userNew.image
+                            }
+                        });
+                    }
+                );
             });
-          }
-        );
-      });
 
-  } catch (error) {
-    if(error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(val => val.message);
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
 
-      return res.status(400).json({
-        success: false,
-        error: messages
-      });
+            return res.status(400).json({
+                success: false,
+                error: messages
+            });
+        } else {
+            return res.status(500).json({
+                success: false,
+                error: 'Internal Server Error'
+            });
+        }
     }
-    else {
-      return res.status(500).json({
-        success: false,
-        error: 'Internal Server Error'
-      });
-    }
-  }
 }
 
 // @desc Auth user reset password
 // @route POST /api/v1/auth/reset-password
-exports.userResetPassword = async(req, res, next) => {
-  try {
-    const { email } = req.body;
+exports.userResetPassword = async (req, res, next) => {
+    try {
+        const {email} = req.body;
 
-    if(!email) {
-      return res.status(400).json({ msg: 'Please enter email' });
-    }
-
-    User.findOne({ email })
-      .then(async (user) => {
-        if(!user) return res.status(400).json({ msg: 'User does not exist' });
-
-        const characters = '0123456789';
-        let activateCode = '';
-        for (let i = 0; i < 4; i++) {
-          activateCode += characters[Math.floor(Math.random() * characters.length )];
+        if (!email) {
+            return res.status(400).json({msg: 'Please enter email'});
         }
 
-        const userNew = await Otp.findOneAndUpdate(
-          { userId: user._id },
-          {
-            activateCode: Number(activateCode),
-            numberOfTries: 3,
-            expiredAt: moment().add(30, 'minutes'),
-            updatedAt: moment()
-          },
-          { new: true }
-        );
+        User.findOne({email})
+            .then(async (user) => {
+                if (!user) return res.status(400).json({msg: 'User does not exist'});
 
-        const msg = {
-          to: email, // Change to your recipient
-          from: {
-            email: 'thelexpulseteam@fadorteclimited.com',
-            name: 'Lexpulse'
-          },
-          subject: 'OTP Verification',
-          // text: 'and easy to do anywhere, even with Node.js',
-          html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+                const characters = '0123456789';
+                let activateCode = '';
+                for (let i = 0; i < 4; i++) {
+                    activateCode += characters[Math.floor(Math.random() * characters.length)];
+                }
+
+                const userNew = await Otp.findOneAndUpdate(
+                    {userId: user._id},
+                    {
+                        activateCode: Number(activateCode),
+                        numberOfTries: 3,
+                        expiredAt: moment().add(30, 'minutes'),
+                        updatedAt: moment()
+                    },
+                    {new: true}
+                );
+
+                const msg = {
+                    to: email, // Change to your recipient
+                    from: {
+                        email: 'thelexpulseteam@fadorteclimited.com',
+                        name: 'Lexpulse'
+                    },
+                    subject: 'OTP Verification',
+                    // text: 'and easy to do anywhere, even with Node.js',
+                    html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
           <html xmlns="http://www.w3.org/1999/xhtml">
           <head>
           <meta name="viewport" content="width=device-width" />
@@ -276,94 +286,92 @@ exports.userResetPassword = async(req, res, next) => {
               <td style="font-family: 'Open Sans', Helvetica, Sans-Serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0;" valign="top"></td>
             </tr></table></body>
           </html>`,
-        };
+                };
 
-        // const emailSend = await sgMail.send(msg);
+                // const emailSend = await sgMail.send(msg);
 
-        const emailSend = client.sendEmail({
-          "From": "thelexpulseteam@fadorteclimited.com",
-          "To": email,
-          "Subject": "OTP Verification",
-          "HtmlBody": msg.html,
-          "MessageStream": "outbound"
-        });
+                const emailSend = client.sendEmail({
+                    "From": "thelexpulseteam@fadorteclimited.com",
+                    "To": email,
+                    "Subject": "OTP Verification",
+                    "HtmlBody": msg.html,
+                    "MessageStream": "outbound"
+                });
 
-        return res.status(200).json({
-          success: true,
-          data: userNew
-        });
-      });
+                return res.status(200).json({
+                    success: true,
+                    data: userNew
+                });
+            });
 
-  } catch (error) {
-    console.log(error);
-    if(error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(val => val.message);
+    } catch (error) {
+        console.log(error);
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
 
-      return res.status(400).json({
-        success: false,
-        error: messages
-      });
+            return res.status(400).json({
+                success: false,
+                error: messages
+            });
+        } else {
+            return res.status(500).json({
+                success: false,
+                error: 'Internal Server Error'
+            });
+        }
     }
-    else {
-      return res.status(500).json({
-        success: false,
-        error: 'Internal Server Error'
-      });
-    }
-  }
 }
 
 // @desc Auth user change password
 // @route POST /api/v1/auth/change-password
-exports.userChangePassword = async(req, res, next) => {
-  try {
-    const { email, password, confirmPassword } = req.body;
+exports.userChangePassword = async (req, res, next) => {
+    try {
+        const {email, password, confirmPassword} = req.body;
 
-    if(!email || !password || !confirmPassword) {
-      return res.status(400).json({ msg: 'Please enter all fields' });
+        if (!email || !password || !confirmPassword) {
+            return res.status(400).json({msg: 'Please enter all fields'});
+        }
+
+        User.findOne({email})
+            .then(async (user) => {
+                if (!user) return res.status(400).json({msg: 'User does not exist'});
+
+                // const otpCode = await Otp.findOne({ userId: user.id });
+
+                if (password !== confirmPassword) return res.status(400).json({msg: 'Passwords do not match'});
+
+                // if(moment() > moment(otpCode.expiredAt)) return res.status(400).json({ msg: 'Code expired' });
+
+                // if(otpCode.activateCode !== Number(code)) return res.status(400).json({ msg: 'Invalid code' });
+
+                const salt = await bcrypt.genSalt(10);
+
+                const hash = await bcrypt.hash(password, salt);
+
+                const userNew = await User.updateOne(
+                    {_id: user._id},
+                    {$set: {password: hash}},
+                    {new: true}
+                );
+
+                return res.status(200).json({
+                    success: true
+                });
+            });
+
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
+
+            return res.status(400).json({
+                success: false,
+                error: messages
+            });
+        } else {
+            return res.status(500).json({
+                success: false,
+                error: 'Internal Server Error'
+            });
+        }
     }
-
-    User.findOne({ email })
-      .then(async (user) => {
-        if(!user) return res.status(400).json({ msg: 'User does not exist' });
-
-        // const otpCode = await Otp.findOne({ userId: user.id });
-
-        if(password !== confirmPassword) return res.status(400).json({ msg: 'Passwords do not match' });
-
-        // if(moment() > moment(otpCode.expiredAt)) return res.status(400).json({ msg: 'Code expired' });
-
-        // if(otpCode.activateCode !== Number(code)) return res.status(400).json({ msg: 'Invalid code' });
-
-        const salt = await bcrypt.genSalt(10);
-
-        const hash = await bcrypt.hash(password, salt);
-
-        const userNew = await User.updateOne(
-          { _id: user._id },
-          { $set: { password: hash } },
-          { new: true }
-        );
-
-        return res.status(200).json({
-          success: true
-        });
-      });
-
-  } catch (error) {
-    if(error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(val => val.message);
-
-      return res.status(400).json({
-        success: false,
-        error: messages
-      });
-    }
-    else {
-      return res.status(500).json({
-        success: false,
-        error: 'Internal Server Error'
-      });
-    }
-  }
 }

@@ -1,0 +1,40 @@
+
+type Mutation {
+    createUser(input: UserInput): User
+    updateUser(id: ID!, input: UserInput): User
+    deleteUser(id: ID!): User
+    createVenue(input: VenueInput): Venue
+    updateVenue(id: ID!, input: VenueInput): Venue
+    deleteVenue(id: ID!): Venue
+    createWallet(input: WalletInput): Wallet
+    updateWallet(id: ID!, input: WalletInput): Wallet
+    deleteWallet(id: ID!): Wallet
+    createTicket(input: TicketInput): Ticket
+    updateTicket(id: ID!, input: TicketInput): Ticket
+    deleteTicket(id: ID!): Ticket
+    createTransaction(input: TransactionInput): Transaction
+    updateTransaction(id: ID!, input: TransactionInput): Transaction
+    deleteTransaction(id: ID!): Transaction
+    createScanner(input: ScannerInput): Scanner
+    updateScanner(id: ID!, input: ScannerInput): Scanner
+    deleteScanner(id: ID!): Scanner
+
+    #events
+
+    createEvent(id: ID!,input: EventInput):Event
+    deleteEvent(id: ID!):Event
+    updateEvent(id: ID!,input: EventInput):Event
+    approveEvent(id: ID!): Event
+    flagEvent (id: ID!, reason: String): Event
+    
+    #payout
+    completePayout(id:ID!):Payout
+    createWithdrawalAccount(input: WithdrawalAccountInput):WithdrawalAccount
+
+    createPayout(input: PayoutInput): Payout
+    updatePayout(id: ID!, input: PayoutInput): Payout
+    deletePayout(id: ID!): Payout
+
+    updateWithdrawalAccount(id: ID!, input: WithdrawalAccountInput): WithdrawalAccount
+    deleteWithdrawalAccount(id: ID!): WithdrawalAccount
+}

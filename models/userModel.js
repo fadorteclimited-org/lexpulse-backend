@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const {Schema} = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
   firstName: {
@@ -64,6 +65,38 @@ const UserSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  currency:{
+    type: String,
+    default: 'GHS',
+  },
+  wallets: [
+    {
+      type: Schema.Types.ObjectId,
+    }
+  ],
+  availableBalance: {
+    type: Number,
+    default: 0,
+  },
+  pendingBalance: {
+    type: Number,
+    default: 0,
+  },
+  prevAvailableBalance: {
+    type: Number,
+    default: 0,
+  },
+  prevPendingBalance: {
+    type: Number,
+    default: 0,
+  },
+  withdrawalAccounts: {
+    type: [
+      {
+        type: Schema.Types.ObjectId,
+      }
+    ],
   }
 });
 

@@ -1,0 +1,48 @@
+#file:userModel.graphql
+
+type User {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    email: String!
+    username: String!
+    organization: String
+    gender: String
+    phone: String
+    country: String!
+    activatedEmail: Boolean
+    activatedPhone: Boolean
+    userType: String!
+    image: [String]
+    accountActive: Boolean
+    createdAt: String!
+    currency: String!
+    wallets: [ID!]
+    availableBalance: Float
+    pendingBalance: Float
+    prevAvailableBalance: Float
+    prevPendingBalance: Float
+}
+
+input UserInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    username: String!
+    organization: String
+    gender: String
+    phone: String
+    country: String!
+    activatedEmail: Boolean
+    activatedPhone: Boolean
+    userType: String!
+    image: [String]
+    accountActive: Boolean
+    currency: String
+    wallets: [ID!]
+    availableBalance: Float
+    pendingBalance: Float
+    prevAvailableBalance: Float
+    prevPendingBalance: Float
+}
+

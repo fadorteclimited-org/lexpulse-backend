@@ -1,0 +1,15 @@
+
+type Following {
+    id: ID!
+    userId: ID!
+    followers: [ID]
+    following: [ID]
+    createdAt: String!
+}
+
+input FollowingInput {
+    userId: ID!
+    followers: [ID]
+    following: [ID]
+}
+

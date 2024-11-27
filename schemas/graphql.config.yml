@@ -1,0 +1,21 @@
+schema:
+  - walletModel.graphql
+  - notificationsModel.graphql
+  - favoritesModel.graphql
+  - categoriesModel.graphql
+  - transactionModel.graphql
+  - countriesModel.graphql
+  - eventModel.graphql
+  - followingModel.graphql
+  - userModel.graphql
+  - ticketModel.graphql
+  - scannerModel.graphql
+  - promotionModel.graphql
+  - venueModel.graphql
+  - referralCodeModel.graphql
+  - otpModel.graphql
+  - pointsModel.graphql
+  - combinedQuery.graphql
+  - combinedMutations.graphql
+documents: '**/*.graphql'
+

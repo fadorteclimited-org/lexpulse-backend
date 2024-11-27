@@ -34,7 +34,10 @@ const VenueSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
-    cover: {
+    images: [{
+        type: String,
+    }],
+    poster: {
         type: String,
     },
     capacity: {
@@ -64,6 +67,11 @@ const VenueSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    }
 });
 
 module.exports = mongoose.model('Venue', VenueSchema);

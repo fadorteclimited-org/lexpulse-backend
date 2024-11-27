@@ -1,0 +1,100 @@
+type TicketInfo {
+    ticketType: String!
+    price: Float!
+    ticketsAvailable: Int!
+    ticketsLeft: Int!
+    sold: Int
+    saleStart: String
+    saleEnd: String
+}
+
+type EventVenue {
+    name: String
+    street: String
+    city: String
+    country: String
+    district: String
+    saved: Boolean
+    id: String
+}
+
+type Event {
+    id: ID!
+    eventHostId: ID!
+    poster: String!
+    cover: String
+    eventName: String!
+    location: String!
+    country: String!
+    category: String!
+    subCategory: String
+    currency: String!
+    ticketInfo: [TicketInfo]
+    eventDate: String!
+    eventEnd: String
+    startSalesDate: String
+    endSalesDate: String
+    image: [String]
+    description: String!
+    minAge: Int
+    dress: String
+    venue: EventVenue
+    lastEntry: String
+    approved: Boolean!
+    createdAt: String!
+    viewCount: Int
+    weightedRating: Float
+    ticketSales: Int
+    scanners: [ID]
+    flagged: Boolean
+    reason: String
+}
+
+input TicketInfoInput {
+    ticketType: String!
+    price: Float!
+    ticketsAvailable: Int!
+    ticketsLeft: Int!
+    sold: Int
+    saleStart: String
+    saleEnd: String
+}
+
+input EventVenueInput {
+    name: String
+    street: String
+    city: String
+    country: String
+    district: String
+    saved: Boolean
+    id: String
+}
+
+input EventInput {
+    eventHostId: ID!
+    poster: String!
+    cover: String
+    eventName: String!
+    location: String!
+    country: String!
+    category: String!
+    subCategory: String
+    currency: String!
+    ticketInfo: [TicketInfoInput]
+    eventDate: String!
+    eventEnd: String
+    startSalesDate: String
+    endSalesDate: String
+    image: [String]
+    description: String!
+    minAge: Int
+    dress: String
+    venue: EventVenueInput
+    lastEntry: String
+    approved: Boolean!
+    viewCount: Int
+    weightedRating: Float
+    ticketSales: Int
+    scanners: [ID]
+}
+
