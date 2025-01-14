@@ -19,7 +19,7 @@ var client = new postmark.ServerClient(process.env.POSTMARK_EMAIL_KEY);
 //@route /api/v1/transactions/initiate
 exports.initiateHold = async (req, res) => {
     const secretKey = process.env.PAYSTACK_SECRET_KEY;
-    const {email, amount, eventId, callback_url} = req.body;
+    const {email, amount, eventId, callback_url, fees} = req.body;
     try {
 
         const event = await Event.findById(eventId).exec();
@@ -44,14 +44,14 @@ exports.initiateHold = async (req, res) => {
         let method;
         let paymentReference;
         console.log(req.body.paymentMethod )
-        if ( req.body.paymentMethod === 'credit_card' || event.currency === 'GHS' ) {
-            const data = await initiatePaystackPayment(email, amount, event, callback_url, reference);
-            method = 'Paystack';
+        if ( req.body.paymentMethod === 'credit_card' || event.currency === 'GHS' || event.currency === 'KES' ) {
+            const data = await initiatePaystackPayment(email, amount + fees, event, callback_url, reference);
+            method = event.currency === 'KES'? 'Paystack_KE' : 'Paystack';
             console.log(data)
             authorizationUrl = data.data.authorization_url;
             paymentReference = data.data.reference;
         } else {
-            const data = await initiatePowerPayment(email, amount, event, callback_url, reference);
+            const data = await initiatePowerPayment(email, amount + fees, event, callback_url, reference);
             method = 'Pawapay';
             console.log(data)
             authorizationUrl = data.redirectUrl;
@@ -66,7 +66,7 @@ exports.initiateHold = async (req, res) => {
             attendeeId: req.body.attendeeId,
             hostId: event.eventHostId,
             paymentReference,
-            amount,
+            amount: amount + fees,
             method
         });
 
@@ -92,7 +92,7 @@ exports.initiateHold = async (req, res) => {
             success: true, reference, data: {authorizationUrl}
         });
     } catch (error) {
-        // console.log(error)
+        console.log(error, error.message);
         res.status(500).json({
             success: false, error: error.message
         });
@@ -101,7 +101,7 @@ exports.initiateHold = async (req, res) => {
 
 //@route /api/v1/transactions/complete/:reference
 exports.completeTransaction = async (req, res) => {
-    const secretKey = process.env.PAYSTACK_SECRET_KEY;
+
     try {
         const reference = req.params.reference;
         const transaction = await Transaction.findOne({reference}).exec();
@@ -113,7 +113,8 @@ exports.completeTransaction = async (req, res) => {
         }
         let status = 'PENDING';
         let amountPaid = 0;
-        if (transaction.method === 'Paystack') {
+        if (transaction.method === 'Paystack' || transaction.method === 'Paystack_KE') {
+            const secretKey = transaction.method === 'Paystack_KE'? process.env.PAYSTACK_KE_SECRET_KEY : process.env.PAYSTACK_SECRET_KEY;
             const response = await axios.get(`https://api.paystack.co/transaction/verify/${transaction.paymentReference}`, {
                 headers: {
                     Authorization: `Bearer ${secretKey}`,

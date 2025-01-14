@@ -32,7 +32,7 @@ const TransactionSchema = new mongoose.Schema({
   },
   method: {
     type: String,
-    enum: ['Paystack','Pawapay'],
+    enum: ['Paystack','Pawapay','Paystack_KE'],
     required: true,
   },
   paymentReference: {

@@ -82,15 +82,24 @@ exports.getPawapayConfigs = async (req, res) => {
             }
         });
 
-        const data = response.data.countries.filter((country) => {
+       if (req.query.country){
+           const data = response.data.countries.filter((country) => {
 
-            return country?.correspondents?.some(correspondent => correspondent.currency === req.query.currency);
-        })
+               return country?.correspondents?.some(correspondent => correspondent.currency === req.query.currency);
+           })
 
-        return res.status(200).json({
-            data: data,
-            success: true,
-        })
+           return res.status(200).json({
+               data: data,
+               success: true,
+           })
+       } else {
+           const data = response.data.countries
+
+           return res.status(200).json({
+               data: data,
+               success: true,
+           })
+       }
     } catch (error) {
         return res.status(500).json({error: error.message});
     }

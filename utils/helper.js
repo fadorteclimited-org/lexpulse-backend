@@ -59,9 +59,16 @@ const convertCurrency = async (amount, currency) => {
 exports.convertCurrency = convertCurrency;
 
 
+
 exports.initiatePaystackPayment = async (email, amount,event,callback_url,reference) => {
-    const finalAmount = await convertCurrency(amount, event.currency)
+    let finalAmount;
+    if (event.currency === 'KES' || event.currency === 'GHS') {
+        finalAmount= amount;
+    } else {
+        finalAmount = await convertCurrency(amount, event.currency)
+    }
     console.log(finalAmount);
+    const secretKey = (event.currency === 'KES')? process.env.PAYSTACK_KE_SECRET_KEY : process.env.PAYSTACK_SECRET_KEY
     const paymentUrl = `https://api.paystack.co/transaction/initialize`;
     const response = await axios.post(paymentUrl, {
         reference,
@@ -70,7 +77,7 @@ exports.initiatePaystackPayment = async (email, amount,event,callback_url,refere
         callback_url,
     }, {
         headers: {
-            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
+            Authorization: `Bearer ${secretKey}`
         }
     });
     return response.data;
@@ -138,6 +145,7 @@ exports.updateBalance = async (userId) => {
 exports.createPaystackRecipient = async (userId,type, name,account_number,bank_code,currency) => {
 
     try {
+        const secretKey = (currency === 'KES')? process.env.PAYSTACK_KE_SECRET_KEY : process.env.PAYSTACK_SECRET_KEY
         const response = await axios.post('https://api.paystack.co/transferrecipient', {
             type: type,
             name: name,
@@ -149,7 +157,7 @@ exports.createPaystackRecipient = async (userId,type, name,account_number,bank_c
             }
         }, {
             headers: {
-                Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
+                Authorization: `Bearer ${secretKey}`
             }
         });
 
@@ -189,13 +197,18 @@ exports.completePawaPayPayout = async (amount,payout,account) => {
     }
 }
 
-exports.completePaystackPayout = async (amount,payout,account) => {
+exports.completePaystackPayout = async (amount,payout,account,currency) => {
     try {
+        const secretKey = (currency === 'KES')? process.env.PAYSTACK_KE_SECRET_KEY : process.env.PAYSTACK_SECRET_KEY
         const response = await axios.post('https://api.paystack.co/transfer',{
             source: 'balance',
             reason: `Lexpulse Payout #${payout._id}`,
             amount: amount * 100,
             recipient: account.recipient_code,
+        },{
+            headers: {
+                Authorization: `Bearer ${secretKey}`
+            }
         })
         return {
             status: response.data.data.status,
